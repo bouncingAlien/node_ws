@@ -1,0 +1,14 @@
+//- if store object is not passed, use empty object for new store
+mixin storeForm(store = {}) 
+    form(action="/add" method="POST" class="card")
+        label(for="name") Name
+        input(name="name" type="text")
+        label(for="description") Description
+        textarea(name="description" type="text")
+        - const choices = ['WiFi', 'Open Late', 'Family Friendly', 'Vegetarian', 'Licensed']
+        ul.tags
+            each choice in choices
+                .tag.tag__choice
+                    input(type="checkbox" id=choice value=choice name="tags")
+                    label(for=choice) #{choice}
+        input(type="submit" value="Save" class="button")
