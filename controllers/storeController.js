@@ -22,13 +22,15 @@ exports.getStores = async(req, res) => {
     res.render('stores', { title: 'Stores', stores });
 };
 
-exports.editStore = async (req, res) => {
+exports.editStore = async(req, res) => {
     const store = await Store.findOne({ _id: req.params.id });
-    res.render('editStore', {title: `Edit ${store.name}`, store});
+    res.render('editStore', { title: `Edit ${store.name}`, store });
 };
 
-exports.updateStore = async (req, res) => {
-    const store = await Store.findOneAndUpdate({_id: req.params.id }, req.body, {
+exports.updateStore = async(req, res) => {
+    // set location data to be point (for address update)
+    req.body.location.type = 'Point';
+    const store = await Store.findOneAndUpdate({ _id: req.params.id }, req.body, {
         new: true, // returns new store insted of the old one
         runValidators: true, // runs same validators that we defined in model for object creation
     }).exec(); // exec method ensures that query is runed
