@@ -9,7 +9,7 @@ function autocomplete(input, latInput, lngInput) {
     });
     // stop enter to submit the form when dropdown is open
     input.on('keydown', (e) => {
-        if (e.key = 13) {
+        if (e.keyCode = 13) {
             e.preventDefault();
         }
     });
