@@ -52,4 +52,19 @@ storeSchema.pre('save', async function(next) {
     next();
 });
 
+// to add new methods to schema, we add them to statics object
+// we have to use standard function, because we want this to be bound to Store model
+storeSchema.statics.getTagsList = function() {
+    return this.aggregate([
+        // destruct every store by one element in tags array
+        // every element create new istance of store with only that element as tag
+        { $unwind: '$tags' },
+        // for every tag property create object with that id and count property
+        // group elements with same id, and increase count property by one
+        { $group: { _id: '$tags', count: { $sum: 1 } } },
+        // sort them by the value of count property (1 for ascending, -1 descending)
+        { $sort: { count: -1 } }
+    ]);
+};
+
 module.exports = mongoose.model('Store', storeSchema);
