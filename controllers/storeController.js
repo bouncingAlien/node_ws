@@ -80,7 +80,14 @@ exports.getStoreBySlug = async(req, res) => {
 };
 
 exports.getStoresByTag = async(req, res) => {
-    const tags = await Store.getTagsList();
     const tag = req.params.tag;
-    res.render('tags', { tags: tags, title: 'Tags', tag: tag });
+    // if tag is empty, set it to propery that will return any object that has any value on tag property
+    const tagQuery = tag || { $exists: true };
+    // query both queries in same time, and they will return promise
+    const tagsPromise = Store.getTagsList();
+    const storesPromise = Store.find({ tags: tagQuery });
+    // than await them until the slowest one is resolved, and destruckt array to separate variables
+    const [tags, stores] = await Promise.all([tagsPromise, storesPromise]);
+    // render tags page, and pass tags variable, title, current selected tag, and store with that tag(or all stores)
+    res.render('tags', { tags, title: 'Tags', tag, stores });
 };
