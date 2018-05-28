@@ -1,6 +1,6 @@
 //- if store object is not passed, use empty object for new store
 mixin storeForm(store = {}) 
-    form(action=`/add/${store._id || ''}` method="POST" class="card" enctype="multipart/form-data")
+    form(action=`/add/${store._id || ''}` method="post" class="card" enctype="multipart/form-data")
         label(for="name") Name
         input(name="name" type="text" value=store.name)
         label(for="description") Description
