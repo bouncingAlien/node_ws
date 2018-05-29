@@ -8,7 +8,10 @@ const { catchErrors } = require('../handlers/errorHandlers');
 // Do work here
 router.get('/', catchErrors(storeController.getStores));
 router.get('/stores', catchErrors(storeController.getStores));
-router.get('/add', storeController.addStore);
+router.get('/add',
+    authController.isLoggedIn,
+    storeController.addStore
+);
 router.post('/add',
     storeController.upload,
     catchErrors(storeController.resize),
@@ -25,6 +28,7 @@ router.get('/tags', catchErrors(storeController.getStoresByTag));
 // '/tags:tag*?'  to set up regexp route, that means that :tag*? is optional
 router.get('/tags/:tag', catchErrors(storeController.getStoresByTag));
 router.get('/login', userController.loginForm);
+router.post('/login', authController.login);
 router.get('/register', userController.registerForm);
 // 1. validate registration data
 // 2. register the user
@@ -34,5 +38,6 @@ router.post('/register',
     userController.register,
     authController.login
 );
+router.get('/logout', authController.logout);
 
 module.exports = router;
