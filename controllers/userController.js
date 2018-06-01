@@ -42,3 +42,27 @@ exports.register = async(req, res, next) => {
     await registerWithPromise(user, req.body.password);
     next(); // pass to authController.login
 }
+
+exports.account = (req, res) => {
+    res.render('account', { title: 'Edit Your Account.' });
+}
+
+exports.updateAccount = async(req, res) => {
+    const updates = {
+        name: req.body.name,
+        email: req.body.email
+    };
+    const user = await User.findOneAndUpdate(
+        // query - specify user, using ID from id property that is passed to us by passport
+        { _id: req.user._id },
+        // update - take updates object and use it to update data
+        { $set: updates },
+        // options
+        // 1: send back new data stored in DB
+        // 2 run validation of input
+        // 3: context is required from mongoose to run and finis query
+        { new: true, runValidators: true, context: 'query' }
+    )
+    req.flash('success', 'Updated the profile!');
+    res.redirect('account');
+}

@@ -55,6 +55,7 @@ app.use(flash());
 app.use((req, res, next) => {
     res.locals.h = helpers;
     res.locals.flashes = req.flash();
+    // passport method, that in case user is logged in, it passes user object to our template
     res.locals.user = req.user || null;
     res.locals.currentPath = req.path;
     next();
