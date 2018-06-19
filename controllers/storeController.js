@@ -100,6 +100,10 @@ exports.getStoresByTag = async(req, res) => {
     res.render('tags', { tags, title: 'Tags', tag, stores });
 };
 
+exports.mapPage = (req, res) => {
+    res.render('map', { title: 'Map' });
+};
+
 // API -------------------------------------------------------
 
 exports.searchStores = async(req, res) => {
@@ -113,7 +117,7 @@ exports.searchStores = async(req, res) => {
         score: { $meta: 'textScore' } // sort stores by values in that virtual table
     }).limit(5);
     res.json(stores);
-}
+};
 
 exports.mapStores = async(req, res) => {
     const coordinates = [req.query.lng, req.query.lat].map(parseFloat);
@@ -128,6 +132,6 @@ exports.mapStores = async(req, res) => {
             }
         }
     }
-    const stores = await Store.find(q).select('slug name description location').limit(10);
+    const stores = await Store.find(q).select('slug name description location photo').limit(10);
     res.json(stores);
-}
+};
