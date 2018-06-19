@@ -58,8 +58,15 @@ exports.getStores = async(req, res) => {
     res.render('stores', { title: 'Stores', stores });
 };
 
+const confirmOwner = (store, user) => {
+    if (!store.author.equals(user._id)) {
+        throw Error('You must own a store in oreder to edit it!');
+    }
+}
+
 exports.editStore = async(req, res) => {
     const store = await Store.findOne({ _id: req.params.id });
+    confirmOwner(store, req.user);
     res.render('editStore', { title: `Edit ${store.name}`, store });
 };
 
@@ -92,3 +99,18 @@ exports.getStoresByTag = async(req, res) => {
     // render tags page, and pass tags variable, title, current selected tag, and store with that tag(or all stores)
     res.render('tags', { tags, title: 'Tags', tag, stores });
 };
+
+// API -------------------------------------------------------
+
+exports.searchStores = async(req, res) => {
+    const stores = await Store.find({ // find stores that respond to query
+        $text: {
+            $search: req.query.q
+        }
+    }, {
+        score: { $meta: 'textScore' } // create virtual meta value for each store based on time that query word is repetet
+    }).sort({ // mongodb built in method
+        score: { $meta: 'textScore' } // sort stores by values in that virtual table
+    }).limit(5);
+    res.json(stores);
+}
