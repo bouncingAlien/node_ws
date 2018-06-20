@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Store = mongoose.model('Store');
+const User = mongoose.model('User');
 const multer = require('multer');
 const jimp = require('jimp');
 const uuid = require('uuid');
@@ -54,7 +55,6 @@ exports.createStore = async(req, res) => {
 
 exports.getStores = async(req, res) => {
     const stores = await Store.find();
-    console.log(stores);
     res.render('stores', { title: 'Stores', stores });
 };
 
@@ -104,6 +104,11 @@ exports.mapPage = (req, res) => {
     res.render('map', { title: 'Map' });
 };
 
+exports.hearts = async(req, res) => {
+    const stores = await Store.find({ _id: { $in: req.user.hearts } });
+    res.render('hearts', { title: 'Hearted', stores });
+}
+
 // API -------------------------------------------------------
 
 exports.searchStores = async(req, res) => {
@@ -135,3 +140,17 @@ exports.mapStores = async(req, res) => {
     const stores = await Store.find(q).select('slug name description location photo').limit(10);
     res.json(stores);
 };
+
+exports.heartStore = async(req, res) => {
+    // get all gearts from user, it is a list of objects in array
+    const hearts = req.user.hearts.map(obj => obj.toString());
+    // if user has that store id in hearts array, set operator to pull (remove), else set it to add (addtoset let it add only once)
+    const operator = hearts.includes(req.params.id) ? '$pull' : '$addToSet';
+    // find user and update
+    const user = await User
+        .findByIdAndUpdate(req.user._id, {
+            // es6 passing value of operator, and adding or removing store id object from array depending on operator
+            [operator]: { hearts: req.params.id }
+        }, { new: true }); // new operator is making sure that user object that is passed as response, is one after findByIdAndUpdate method is done
+    res.json(user);
+}
