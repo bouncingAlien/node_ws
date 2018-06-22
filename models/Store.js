@@ -38,7 +38,10 @@ const storeSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: 'User',
         required: 'You must supply an author.'
-    }
+    },
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
 // define indexes
@@ -81,5 +84,56 @@ storeSchema.statics.getTagsList = function() {
         { $sort: { count: -1 } }
     ]);
 };
+
+storeSchema.statics.getTopStores = function() {
+    return this.aggregate([
+        // lookup stores and populate their reviews
+        {
+            $lookup: {
+                from: 'reviews', // mongodb alone lovercase schema name (ref) and adds 's' to end
+                localField: '_id', // which local filed to try to match
+                foreignField: 'store', // which foreign field to try to match
+                as: 'reviews' // name of virtual field
+            }
+        },
+        // filter for only items that have 2 or more reviews
+        {
+            $match: {
+                'reviews.1': { $exists: true } // .1 to access things that are index based in mongodb (.0 - first, .1 - second...)
+            }
+        },
+        // add the average reviews field
+        {
+            $addFields: { // add new virtual field
+                averageRating: { // named averageRating
+                    $avg: '$reviews.rating' // avg is math operator, and $ in front of reviews it means that is a property being piped in from previous method
+                }
+            }
+        },
+        // sort it by our new field, highest average first
+        {
+            $sort: {
+                averageRating: -1 // 1 or -1
+            }
+        },
+        // limit it to 10
+        { $limit: 10 }
+    ]);
+};
+
+// virtual is mongoose method, not avaliable on mongodb
+storeSchema.virtual('reviews', {
+    ref: 'Review', // name of model to make connection
+    localField: '_id', // which field on store - local field shold match:
+    foreignField: 'store' // which field on Review - foreign field, to make connection
+});
+
+function autopopulate(next) {
+    this.populate('reviews');
+    next();
+}
+
+storeSchema.pre('find', autopopulate);
+storeSchema.pre('findOne', autopopulate);
 
 module.exports = mongoose.model('Store', storeSchema);

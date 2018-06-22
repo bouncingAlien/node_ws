@@ -55,6 +55,7 @@ exports.createStore = async(req, res) => {
 
 exports.getStores = async(req, res) => {
     const stores = await Store.find();
+    // we can use ...find().populate('reviews') to get complete object that ref field is pointing, insted populate function that is defined on Store schema
     res.render('stores', { title: 'Stores', stores });
 };
 
@@ -82,7 +83,7 @@ exports.updateStore = async(req, res) => {
 };
 
 exports.getStoreBySlug = async(req, res) => {
-    const store = await Store.findOne({ slug: req.params.slug }).populate('author');
+    const store = await Store.findOne({ slug: req.params.slug }).populate('author reviews'); // populate to get complete object that ref field is pointing
     if (!store) return next();
     res.render('store', { store: store, title: store.name });
 };
@@ -153,4 +154,9 @@ exports.heartStore = async(req, res) => {
             [operator]: { hearts: req.params.id }
         }, { new: true }); // new operator is making sure that user object that is passed as response, is one after findByIdAndUpdate method is done
     res.json(user);
+}
+
+exports.getTopStores = async(req, res) => {
+    const stores = await Store.getTopStores();
+    res.render('topStores', { stores, title: 'Top Stores!' });
 }
