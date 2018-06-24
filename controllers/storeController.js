@@ -54,9 +54,24 @@ exports.createStore = async(req, res) => {
 };
 
 exports.getStores = async(req, res) => {
-    const stores = await Store.find();
+    const page = req.params.page || 1;
+    const limit = 4;
+    const skip = (page * limit) - limit;
+    const storePromise = Store
+        .find()
+        .skip(skip)
+        .limit(limit)
+        .sort({ created: 'desc' });
     // we can use ...find().populate('reviews') to get complete object that ref field is pointing, insted populate function that is defined on Store schema
-    res.render('stores', { title: 'Stores', stores });
+    const countPromise = Store.count();
+    const [stores, count] = await Promise.all([storePromise, countPromise]);
+    const pages = Math.ceil(count/limit);
+    if(!stores.length && skip) {
+        req.flash('info', `Page ${page} does not exist. You are returned to page ${pages}.`);
+        res.redirect(`/stores/page/${pages}`);
+        return;
+    }
+    res.render('stores', { title: 'Stores', stores, page, pages, count });
 };
 
 const confirmOwner = (store, user) => {
